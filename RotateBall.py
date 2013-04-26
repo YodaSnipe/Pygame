@@ -93,7 +93,7 @@ class Simulation:
         self.screen = pygame.display.set_mode((win_width, win_height))
         
         #set caption
-        pygame.display.set_caption("Simulation of 3D Point Rotation (http://codentronix.com)")
+        pygame.display.set_caption("Simulation of 3D Point Rotation")
  
         #system clock time
         self.clock = pygame.time.Clock()
@@ -123,7 +123,7 @@ class Simulation:
             self.clock.tick(50)
             
             #black screen
-            self.screen.fill((0,0,0))
+            self.screen.fill((255,0,0))
  
             for v in self.vertices:
                 
