@@ -1,7 +1,7 @@
 """
  Simulation of 3D Point Rotation.
 """
-import sys, math, pygame
+import sys, math, pygame, random
 
 class Point3D:
     def __init__(self, x = 0, y = 0, z = 0):
@@ -114,6 +114,15 @@ class Simulation:
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
  
     def run(self):
+        
+        origColor = [255,0,0]
+        
+        #red background
+        self.screen.fill(origColor)
+        
+        #fade in color background
+        fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
+        
         while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -122,8 +131,32 @@ class Simulation:
             #delay
             self.clock.tick(50)
             
-            #black screen
-            self.screen.fill((255,0,0))
+            #check background color status
+            if (origColor[0] != fadeInColor[0]):
+                if (origColor[0] < fadeInColor[0]):
+                    origColor[0]+= 1
+                else:
+                    origColor[0]-= 1
+            
+            if (origColor[1] != fadeInColor[1]):
+                if (origColor[1] < fadeInColor[1]):
+                    origColor[1]+= 1
+                else:
+                    origColor[1]-= 1
+                    
+            if (origColor[2] != fadeInColor[2]):
+                if (origColor[2] < fadeInColor[2]):
+                    origColor[2]+= 1
+                else:
+                    origColor[2]-= 1
+                    
+            if (origColor == fadeInColor):
+                #fade in color background
+                fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
+
+            #update background color
+            self.screen.fill(origColor)
+            
  
             for v in self.vertices:
                 
