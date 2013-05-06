@@ -2,7 +2,7 @@
  Simulation of 3D Point Rotation.
 """
 import sys, math, pygame, random
-from pygame.locals import K_DOWN
+from pygame.locals import *
 
 class Point3D:
     def __init__(self, x = 0, y = 0, z = 0):
@@ -115,9 +115,8 @@ class Simulation:
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
         
         
-    def rotate(self):
+    def rotate(self, direction):
             for v in self.vertices:
-                
                 #Rotate the point around X axis, then around Y axis, and finally around Z axis.
                 r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
                 
@@ -131,9 +130,14 @@ class Simulation:
                 self.screen.fill((255,255,255),(x,y,2,2))
  
             #increment angles to simulate rotation
-            self.angleX += 1
-            self.angleY += 1
-            self.angleZ += 1
+            if (direction == "UP"):
+                self.angleX += 1
+            elif (direction == "DOWN"):
+                self.angleX -= 1
+            elif (direction == "LEFT"):
+                self.angleY += 1
+            elif (direction == "RIGHT"):
+                self.angleY -= 1
             
             #updates display surface to screen
             pygame.display.flip()
@@ -194,20 +198,42 @@ class Simulation:
                 if event.type == pygame.QUIT:
                     sys.exit()
             
+            #delay
+            self.clock.tick(50)
+            
+            if (origColor == fadeInColor):
+                #fade in color background
+                fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
+            
             keys = pygame.key.get_pressed()
-            if (keys[K_DOWN]):
-                #delay
-                self.clock.tick(50)
-                
+            if (keys[K_UP]):
                 #Rotation
-                self.rotate()
-                
-                if (origColor == fadeInColor):
-                    #fade in color background
-                    fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
+                self.rotate("UP")
                 
                 #Color Fading
                 self.colorFade(origColor, fadeInColor)
- 
+                
+            if (keys[K_DOWN]):
+                #Rotation
+                self.rotate("DOWN")
+                
+                #Color Fading
+                self.colorFade(origColor, fadeInColor)
+                
+            if (keys[K_LEFT]):
+                #Rotation
+                self.rotate("LEFT")
+                
+                #Color Fading
+                self.colorFade(origColor, fadeInColor)
+                
+            if (keys[K_RIGHT]):
+                #Rotation
+                self.rotate("RIGHT")
+                
+                #Color Fading
+                self.colorFade(origColor, fadeInColor)
+                
+
 if __name__ == "__main__":
     Simulation().run()
