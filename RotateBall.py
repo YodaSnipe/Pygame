@@ -2,6 +2,7 @@
  Simulation of 3D Point Rotation.
 """
 import sys, math, pygame, random
+from pygame.locals import K_DOWN
 
 class Point3D:
     def __init__(self, x = 0, y = 0, z = 0):
@@ -112,52 +113,9 @@ class Simulation:
  
         #default angles
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
- 
-    def run(self):
         
-        origColor = [255,0,0]
         
-        #red background
-        self.screen.fill(origColor)
-        
-        #fade in color background
-        fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
-        
-        while 1:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    sys.exit()
- 
-            #delay
-            self.clock.tick(50)
-            
-            #check background color status
-            if (origColor[0] != fadeInColor[0]):
-                if (origColor[0] < fadeInColor[0]):
-                    origColor[0]+= 1
-                else:
-                    origColor[0]-= 1
-            
-            if (origColor[1] != fadeInColor[1]):
-                if (origColor[1] < fadeInColor[1]):
-                    origColor[1]+= 1
-                else:
-                    origColor[1]-= 1
-                    
-            if (origColor[2] != fadeInColor[2]):
-                if (origColor[2] < fadeInColor[2]):
-                    origColor[2]+= 1
-                else:
-                    origColor[2]-= 1
-                    
-            if (origColor == fadeInColor):
-                #fade in color background
-                fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
-
-            #update background color
-            self.screen.fill(origColor)
-            
- 
+    def rotate(self):
             for v in self.vertices:
                 
                 #Rotate the point around X axis, then around Y axis, and finally around Z axis.
@@ -179,6 +137,77 @@ class Simulation:
             
             #updates display surface to screen
             pygame.display.flip()
+ 
+ 
+    def colorFade(self, origColor, fadeInColor):
+        #check background color status
+        if (origColor[0] != fadeInColor[0]):
+            if (origColor[0] < fadeInColor[0]):
+                origColor[0]+= 1
+            else:
+                origColor[0]-= 1
+        
+        if (origColor[1] != fadeInColor[1]):
+            if (origColor[1] < fadeInColor[1]):
+                origColor[1]+= 1
+            else:
+                origColor[1]-= 1
+                
+        if (origColor[2] != fadeInColor[2]):
+            if (origColor[2] < fadeInColor[2]):
+                origColor[2]+= 1
+            else:
+                origColor[2]-= 1
+            
+        #update background color
+        self.screen.fill(origColor)
+ 
+    def run(self):
+        #starting background color
+        origColor = [255,0,0]
+        
+        #fade in color background
+        fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
+        
+        #fill background
+        self.screen.fill(origColor)
+        
+        for v in self.vertices:
+            
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            
+            #Transform the point from 3D to 2D
+            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            
+            #get x, and y values
+            x, y = int(p.x), int(p.y)
+            
+            #draw point
+            self.screen.fill((255,255,255),(x,y,2,2))
+        
+        #updates display surface to screen
+        pygame.display.flip()
+        
+        while 1:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            
+            keys = pygame.key.get_pressed()
+            if (keys[K_DOWN]):
+                #delay
+                self.clock.tick(50)
+                
+                #Rotation
+                self.rotate()
+                
+                if (origColor == fadeInColor):
+                    #fade in color background
+                    fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
+                
+                #Color Fading
+                self.colorFade(origColor, fadeInColor)
  
 if __name__ == "__main__":
     Simulation().run()
