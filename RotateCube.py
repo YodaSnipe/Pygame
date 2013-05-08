@@ -1,9 +1,12 @@
 """
- Simulation of 3D Point Rotation.
+ Simulation of 3D Cube Rotation.
 """
 import sys, math, pygame, random
-from pygame.locals import *
+from pygame.locals import K_UP, K_DOWN, K_RIGHT, K_LEFT
 
+"""
+Points Class
+"""
 class Point3D:
     def __init__(self, x = 0, y = 0, z = 0):
         self.x, self.y, self.z = float(x), float(y), float(z)
@@ -50,8 +53,8 @@ class Point3D:
         #return Point3D (rotating around Y axis, therefore no change in Y value)
         return Point3D(x, self.y, z)
  
+    """ Rotates the point around the Z axis by the given angle in degrees. """
     def rotateZ(self, angle):
-        """ Rotates the point around the Z axis by the given angle in degrees. """
         
         #determines radians
         rad = angle * math.pi / 180
@@ -71,8 +74,8 @@ class Point3D:
         #return Point3D (rotating around Z axis, therefore no change in Z value)
         return Point3D(x, y, self.z)
  
+    """ Transforms this 3D point to 2D using a perspective projection. """
     def project(self, win_width, win_height, fov, viewer_distance):
-        """ Transforms this 3D point to 2D using a perspective projection. """
         
         #factor using field of vision
         factor = fov / (viewer_distance + self.z)
@@ -86,15 +89,23 @@ class Point3D:
         #return Point3D (2D point, z=1)
         return Point3D(x, y, 1)
 
+
+
+"""
+Simulation Class
+"""
 class Simulation:
+    
+    """ init """
     def __init__(self, win_width = 640, win_height = 480):
+        
         pygame.init()
  
         #set screen to certain width and height
         self.screen = pygame.display.set_mode((win_width, win_height))
         
         #set caption
-        pygame.display.set_caption("Simulation of 3D Point Rotation")
+        pygame.display.set_caption("Simulation of 3D Cube Rotation")
  
         #system clock time
         self.clock = pygame.time.Clock()
@@ -114,35 +125,95 @@ class Simulation:
         #default angles
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
         
-        
+    """ Rotates the cube in the given direction """
     def rotate(self, direction):
-            for v in self.vertices:
-                #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-                r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-                
-                #Transform the point from 3D to 2D
-                p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-                
-                #get x, and y values
-                x, y = int(p.x), int(p.y)
-                
-                #draw point
-                self.screen.fill((255,255,255),(x,y,2,2))
- 
-            #increment angles to simulate rotation
-            if (direction == "UP"):
-                self.angleX += 1
-            elif (direction == "DOWN"):
-                self.angleX -= 1
-            elif (direction == "LEFT"):
-                self.angleY += 1
-            elif (direction == "RIGHT"):
-                self.angleY -= 1
+        
+        for frontLines in range(0,4):
+            #First point
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            r = self.vertices[frontLines].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
             
-            #updates display surface to screen
-            pygame.display.flip()
+            #Second point
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            if frontLines < 3:
+                r2 = self.vertices[frontLines+1].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            else:
+                r2 = self.vertices[0].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            
+            #Transform point 1 from 3D to 2D
+            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            #Transform point 2 from 3D to 2D
+            p2 = r2.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            
+            #get x, and y values
+            x, y = int(p.x), int(p.y)
+            #get x2, and y2 values
+            x2, y2 = int(p2.x), int(p2.y)
+            
+            #draw the line
+            pygame.draw.line(self.screen, (0,0,0), (x, y), (x2, y2), 2)
+            
+        for sides in range(0,4):
+            #First point
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            r = self.vertices[sides].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            
+            #Second point
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            r2 = self.vertices[sides+4].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            
+            #Transform the point from 3D to 2D
+            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            #Transform the point from 3D to 2D
+            p2 = r2.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            
+            #get x, and y values
+            x, y = int(p.x), int(p.y)
+            #get x, and y values
+            x2, y2 = int(p2.x), int(p2.y)
+            
+            pygame.draw.line(self.screen, (0,0,0), (x, y), (x2, y2), 2)
+            
+        for backLines in range(4,8):
+            #First point
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            r = self.vertices[backLines].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            
+            #Second point
+            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            if backLines < 7:
+                r2 = self.vertices[backLines+1].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            else:
+                r2 = self.vertices[4].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            
+            #Transform point 1 from 3D to 2D
+            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            #Transform point 2 from 3D to 2D
+            p2 = r2.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            
+            #get x, and y values
+            x, y = int(p.x), int(p.y)
+            #get x2, and y2 values
+            x2, y2 = int(p2.x), int(p2.y)
+            
+            #draw the line
+            pygame.draw.line(self.screen, (0,0,0), (x, y), (x2, y2), 2)
+ 
+        #increment angles to simulate rotation in the given direction
+        if (direction == "UP"):
+            self.angleX += 2
+        elif (direction == "DOWN"):
+            self.angleX -= 2
+        elif (direction == "LEFT"):
+            self.angleY += 2
+        elif (direction == "RIGHT"):
+            self.angleY -= 2
+        
+        #updates display surface to screen
+        pygame.display.flip()
  
  
+    
     def colorFade(self, origColor, fadeInColor):
         #check background color status
         if (origColor[0] != fadeInColor[0]):
@@ -167,6 +238,7 @@ class Simulation:
         self.screen.fill(origColor)
  
     def run(self):
+        
         #starting background color
         origColor = [255,0,0]
         
@@ -176,19 +248,8 @@ class Simulation:
         #fill background
         self.screen.fill(origColor)
         
-        for v in self.vertices:
-            
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r = v.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Transform the point from 3D to 2D
-            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            
-            #get x, and y values
-            x, y = int(p.x), int(p.y)
-            
-            #draw point
-            self.screen.fill((255,255,255),(x,y,2,2))
+        #initial display
+        self.rotate("UP")
         
         #updates display surface to screen
         pygame.display.flip()
@@ -205,6 +266,7 @@ class Simulation:
                 #fade in color background
                 fadeInColor = [random.randint(0,255),random.randint(0,255),random.randint(0,255)]
             
+            #grabs the pressed keys
             keys = pygame.key.get_pressed()
             if (keys[K_UP]):
                 #Rotation
