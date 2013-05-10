@@ -3,6 +3,7 @@
 """
 import sys, math, pygame, random
 from pygame.locals import K_UP, K_DOWN, K_RIGHT, K_LEFT
+from operator import itemgetter
 
 """
 Points Class
@@ -87,7 +88,7 @@ class Point3D:
         y = -self.y * factor + win_height / 2
         
         #return Point3D (2D point, z=1)
-        return Point3D(x, y, 1)
+        return Point3D(x, y, self.z)
 
 
 
@@ -121,83 +122,46 @@ class Simulation:
             Point3D(1,-1,1),
             Point3D(-1,-1,1)
         ]
- 
-        #default angles
+        
+        #Faces correspond to 4 Point3Ds
+        self.faces  = [(0,1,2,3),(1,5,6,2),(5,4,7,6),(4,0,3,7),(0,4,5,1),(3,2,6,7)]
+
+        # Define colors for each face
+        self.colors = [(255,0,255),(255,0,0),(0,255,0),(0,0,255),(0,255,255),(255,255,0)]
+
         self.angleX, self.angleY, self.angleZ = 0, 0, 0
         
     """ Rotates the cube in the given direction """
     def rotate(self, direction):
         
-        for frontLines in range(0,4):
-            #First point
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r = self.vertices[frontLines].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Second point
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            if frontLines < 3:
-                r2 = self.vertices[frontLines+1].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            else:
-                r2 = self.vertices[0].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Transform point 1 from 3D to 2D
-            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            #Transform point 2 from 3D to 2D
-            p2 = r2.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            
-            #get x, and y values
-            x, y = int(p.x), int(p.y)
-            #get x2, and y2 values
-            x2, y2 = int(p2.x), int(p2.y)
-            
-            #draw the line
-            pygame.draw.line(self.screen, (0,0,0), (x, y), (x2, y2), 2)
-            
-        for sides in range(0,4):
-            #First point
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r = self.vertices[sides].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Second point
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r2 = self.vertices[sides+4].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Transform the point from 3D to 2D
-            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            #Transform the point from 3D to 2D
-            p2 = r2.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            
-            #get x, and y values
-            x, y = int(p.x), int(p.y)
-            #get x, and y values
-            x2, y2 = int(p2.x), int(p2.y)
-            
-            pygame.draw.line(self.screen, (0,0,0), (x, y), (x2, y2), 2)
-            
-        for backLines in range(4,8):
-            #First point
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            r = self.vertices[backLines].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Second point
-            #Rotate the point around X axis, then around Y axis, and finally around Z axis.
-            if backLines < 7:
-                r2 = self.vertices[backLines+1].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            else:
-                r2 = self.vertices[4].rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
-            
-            #Transform point 1 from 3D to 2D
-            p = r.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            #Transform point 2 from 3D to 2D
-            p2 = r2.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
-            
-            #get x, and y values
-            x, y = int(p.x), int(p.y)
-            #get x2, and y2 values
-            x2, y2 = int(p2.x), int(p2.y)
-            
-            #draw the line
-            pygame.draw.line(self.screen, (0,0,0), (x, y), (x2, y2), 2)
+        # It will hold transformed vertices.
+        tVertices = []
+        
+        for vertex in self.vertices:
+            # Rotate the point around X axis, then around Y axis, and finally around Z axis.
+            rotation = vertex.rotateX(self.angleX).rotateY(self.angleY).rotateZ(self.angleZ)
+            # Transform the point from 3D to 2D
+            projection = rotation.project(self.screen.get_width(), self.screen.get_height(), 256, 4)
+            # Put the point in the list of transformed vertices
+            tVertices.append(projection)
+
+        # Calculate the average Z values of each face.
+        avgZ = []
+        i = 0
+        for f in self.faces:
+            z = (tVertices[f[0]].z + tVertices[f[1]].z + tVertices[f[2]].z + tVertices[f[3]].z) / 4.0
+            avgZ.append([i,z])
+            i = i + 1
+
+        #Sort the "z" values in reverse and display the foremost faces last
+        for zVal in sorted(avgZ,key=itemgetter(1),reverse=True):
+            fIndex = zVal[0]
+            f = self.faces[fIndex]
+            pointList = [(tVertices[f[0]].x, tVertices[f[0]].y), (tVertices[f[1]].x, tVertices[f[1]].y),
+                         (tVertices[f[1]].x, tVertices[f[1]].y), (tVertices[f[2]].x, tVertices[f[2]].y),
+                         (tVertices[f[2]].x, tVertices[f[2]].y), (tVertices[f[3]].x, tVertices[f[3]].y),
+                         (tVertices[f[3]].x, tVertices[f[3]].y), (tVertices[f[0]].x, tVertices[f[0]].y)]
+            pygame.draw.polygon(self.screen,self.colors[fIndex],pointList)
  
         #increment angles to simulate rotation in the given direction
         if (direction == "UP"):
